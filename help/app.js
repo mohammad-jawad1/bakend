@@ -4,6 +4,7 @@ const bodyParser = require('body-parser')
 const ejs = require('ejs')
 const md5 = require('md5')
 const res = require('express/lib/response')
+const alert = require("alert")
 
 const app = express()
 app.use(express.static("public"))
@@ -15,6 +16,7 @@ app.set("view engine", "ejs")
 mongoose.connect("mongodb://localhost:27017/games")
 
 const gamesSchema = new mongoose.Schema({
+   name:String,
    email:String,
    password: String
 })
@@ -25,12 +27,7 @@ const Games = new mongoose.model("Games", gamesSchema);
 app.get("/", (req, res) => {
    res.render("first-page")
 })
-app.get("/login-admin",(req,res) => {
-   res.render("login-admin")
-});
-app.get("/admin",(req,res) => {
-   res.render("login-admin")
-});
+
 app.get("/login", (req, res) => {
    res.render("login")
 });
@@ -47,6 +44,10 @@ app.get("/pig-game",(req,res)=>{
    res.render("pig-game")
 })
 
+app.get("/login-admin",(req,res)=>{
+   res.render("login-admin")
+})
+
 app.post("/login-admin",(req,res)=>{
    const email = "shoja@yahoo.com"
    const pas = 12345
@@ -54,25 +55,50 @@ app.post("/login-admin",(req,res)=>{
    const username = req.body.username
    const password = req.body.password
    if(username == email && password == pas){
-      res.render("admin")
+      res.redirect("/admin")
    }
-   
+
 })
 
+app.get("/admin",(req,res)=>{
+   res.render("admin")
+})
+
+
 app.post("/admin",(req,res)=>{
-   const email = req.body.email
+   const username = req.body.name
    Games.findOne({
-      email:email
-   }, 
-   function(err, foundUser) {
-      
-         if (foundUser) {
-               res.render("admin",{
-                  emails: foundUser.email
-               })
-            }
-         }
-   )
+      name:username
+   }, (err, foundUser)=>{
+      if(!foundUser){
+         alert("user not exist")
+         res.render("admin")
+      }
+      if(foundUser){
+         // console.log(foundUser.name);
+         res.render("remove",{
+            user:foundUser.name,
+            email:foundUser.email
+         })
+      }
+   })
+})
+
+
+app.get("/remove",(req,res)=>{
+   res.render("remove")
+})
+
+app.post("/remove",(req,res)=>{
+   const username = req.body.user
+   // console.log(username);
+   Games.findOneAndRemove({
+      name:username
+   },(err,foundUser)=>{
+      if(foundUser){
+         res.redirect("/admin")
+      }
+   })
 })
 
 app.post("/login", (req, res) => {
@@ -91,6 +117,14 @@ app.post("/login", (req, res) => {
                res.render("games")
                console.log("working");
             }
+            else{
+               alert("wrong password!")
+               res.render("login")
+            }
+         }
+         else{
+            alert("wrong email!")
+            res.render("login")
          }
       }
    })
@@ -98,6 +132,7 @@ app.post("/login", (req, res) => {
 
 app.post("/registration", (req, res) => {
    const newUser = new Games({
+      name: req.body.name,
       email: req.body.username,
       password: md5(req.body.password)
    })

@@ -15,22 +15,22 @@
 
    <div class="container">
 
-
       <div class="centered">
          <p> if you want information of player, please search below by the name.
          </p>
          <img src="images/admin.jpg" alt="">
 
-         <form action="/admin" method="post">
-            <input type="text" class="mysearch" name="name" placeholder="Search for player">
-            <button type="submit" class="search">Search</button>
+         <form action="/remove" method="post">
+            <input type="hidden" name="user" value="<%= user %>" onChange="this.form.submit()">
+            <p name="user">Username: <%= user %></p>
+            <p name="user">Email: <%= email %></p>
+            <button type="submit" class="search">Remove User</button>
+
          </form>
 
 
       </div>
-
    </div>
-
 
 
 </body>
